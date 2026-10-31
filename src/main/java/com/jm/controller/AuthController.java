@@ -1,8 +1,8 @@
 package com.jm.controller;
 
+import com.jm.config.JwtService;
 import com.jm.dto.LoginRequest;
 import com.jm.dto.LoginResponse;
-import com.jm.model.Cliente;
 import com.jm.repository.ClienteRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,12 +14,15 @@ public class AuthController {
 
     private final ClienteRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthController(
             ClienteRepository clienteRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
         this.clienteRepository = clienteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
@@ -29,12 +32,15 @@ public class AuthController {
                 .filter(cliente -> passwordEncoder.matches(
                         request.getPassword(),
                         cliente.getPassword()))
-                .<ResponseEntity<?>>map(cliente ->
-                        ResponseEntity.ok(new LoginResponse(
-                                cliente.getId(),
-                                cliente.getNombre(),
-                                cliente.getCorreo())))
-                .orElseGet(() ->
-                        ResponseEntity.status(401).build());
+                .<ResponseEntity<?>>map(cliente -> {
+                    String token = jwtService.generateToken(cliente.getCorreo());
+
+                    return ResponseEntity.ok(new LoginResponse(
+                            cliente.getId(),
+                            cliente.getNombre(),
+                            cliente.getCorreo(),
+                            token));
+                })
+                .orElseGet(() -> ResponseEntity.status(401).build());
     }
 }
