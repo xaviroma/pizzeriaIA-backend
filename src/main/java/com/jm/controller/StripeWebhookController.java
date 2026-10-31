@@ -7,6 +7,7 @@ import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/webhook")
@@ -15,8 +16,8 @@ public class StripeWebhookController {
     private final PedidoService pedidoService;
     private final ObjectMapper objectMapper;
 
-    private static final String STRIPE_WEBHOOK_SECRET =
-            "whsec_7076c78aaca88f5734519e8b3a27a235f915013095f22bdf429440264bc5b202";
+    @Value("${stripe.webhook.secret}")
+    private String webhookSecret;
 
     public StripeWebhookController(PedidoService pedidoService, ObjectMapper objectMapper) {
         this.pedidoService = pedidoService;
@@ -32,7 +33,7 @@ public class StripeWebhookController {
         Event event;
 
         try {
-            event = Webhook.constructEvent(payload, sigHeader, STRIPE_WEBHOOK_SECRET);
+            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
         } catch (Exception e) {
             System.out.println("❌ Invalid signature");
             return "Invalid signature";

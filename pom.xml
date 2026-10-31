@@ -75,6 +75,12 @@
             <artifactId>stripe-java</artifactId>
             <version>26.0.0</version>
         </dependency>
+
+        <!-- BCrypt para el hash de contraseñas -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
