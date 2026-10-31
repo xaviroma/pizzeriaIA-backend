@@ -20,6 +20,7 @@ public class PedidoService {
     private final ProductoRepository productoRepository;
     private final ClienteRepository clienteRepository;
     private final IngredienteRepository ingredienteRepository;
+    private final ProductoIngredienteRepository productoIngredienteRepository;
 
     public static final String PENDIENTE = "PENDIENTE";
     public static final String PAGADO = "PAGADO";
@@ -29,12 +30,14 @@ public class PedidoService {
             PedidoRepository pedidoRepository,
             ProductoRepository productoRepository,
             ClienteRepository clienteRepository,
-            IngredienteRepository ingredienteRepository
+            IngredienteRepository ingredienteRepository,
+            ProductoIngredienteRepository productoIngredienteRepository
     ) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.clienteRepository = clienteRepository;
         this.ingredienteRepository = ingredienteRepository;
+        this.productoIngredienteRepository = productoIngredienteRepository;
     }
 
     public Pedido crearPedido(PedidoRequest request) {
@@ -93,7 +96,19 @@ public class PedidoService {
                 for (Integer idIng : item.getIngredientesIds()) {
 
                     Ingrediente ing = ingredienteRepository.findById(idIng)
-                            .orElseThrow(() -> new RuntimeException("Ingrediente no encontrado"));
+                            .orElseThrow(() -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "Ingrediente no encontrado: " + idIng
+                            ));
+
+                    if (!productoIngredienteRepository.existsByProductoIdAndIngredienteId(
+                            producto.getId(), idIng)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "El ingrediente " + ing.getNombre()
+                                        + " no pertenece al producto " + producto.getNombre()
+                        );
+                    }
 
                     PedidoProductoIngrediente ppi = new PedidoProductoIngrediente();
                     ppi.setPedidoProducto(pp);
