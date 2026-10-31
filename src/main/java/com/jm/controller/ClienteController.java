@@ -1,5 +1,6 @@
 package com.jm.controller;
 
+import com.jm.dto.ClienteResponse;
 import com.jm.model.Cliente;
 import com.jm.repository.ClienteRepository;
 import org.springframework.http.ResponseEntity;
@@ -7,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/clientes")
@@ -24,28 +24,33 @@ public class ClienteController {
     }
 
     @GetMapping
-    public List<Cliente> obtenerClientes() {
-        return clienteRepository.findAll();
+    public List<ClienteResponse> obtenerClientes() {
+        return clienteRepository.findAll()
+                .stream()
+                .map(this::convertirAResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> obtenerClientePorId(@PathVariable Integer id) {
-        Optional<Cliente> cliente = clienteRepository.findById(id);
-        return cliente.map(ResponseEntity::ok)
+    public ResponseEntity<ClienteResponse> obtenerClientePorId(
+            @PathVariable Integer id) {
+
+        return clienteRepository.findById(id)
+                .map(cliente -> ResponseEntity.ok(convertirAResponse(cliente)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Cliente crearCliente(@RequestBody Cliente cliente) {
+    public ClienteResponse crearCliente(@RequestBody Cliente cliente) {
         if (cliente.getPassword() != null && !cliente.getPassword().isBlank()) {
             cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
         }
 
-        return clienteRepository.save(cliente);
+        return convertirAResponse(clienteRepository.save(cliente));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> actualizarCliente(
+    public ResponseEntity<ClienteResponse> actualizarCliente(
             @PathVariable Integer id,
             @RequestBody Cliente detallesCliente) {
 
@@ -60,7 +65,8 @@ public class ClienteController {
                 cliente.setPassword(passwordEncoder.encode(detallesCliente.getPassword()));
             }
 
-            return ResponseEntity.ok(clienteRepository.save(cliente));
+            return ResponseEntity.ok(
+                    convertirAResponse(clienteRepository.save(cliente)));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -72,5 +78,15 @@ public class ClienteController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    private ClienteResponse convertirAResponse(Cliente cliente) {
+        return new ClienteResponse(
+                cliente.getId(),
+                cliente.getNombre(),
+                cliente.getCorreo(),
+                cliente.getTelefono(),
+                cliente.getDireccion()
+        );
     }
 }
