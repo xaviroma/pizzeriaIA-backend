@@ -1,12 +1,21 @@
 package com.jm.model;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class PedidoRequest implements Serializable {
 
     private Integer clienteId;
-    private List<Item> cart;
+
+    @NotEmpty(message = "El carrito no puede estar vacío")
+    private List<@Valid Item> cart;
 
     public Integer getClienteId() {
         return clienteId;
@@ -26,10 +35,20 @@ public class PedidoRequest implements Serializable {
 
     public static class Item {
 
+        @NotNull(message = "El ID del producto es obligatorio")
+        @Positive(message = "El ID del producto debe ser positivo")
         private Integer productoId;
-        private String tamañoSeleccionado;
+
+        @NotBlank(message = "El tamaño es obligatorio")
+        @Pattern(regexp = "Pequena|Mediana|Familiar",
+                message = "El tamaño seleccionado no es válido")
+        private String tamanoSeleccionado;
+
+        @NotNull(message = "La cantidad es obligatoria")
+        @Positive(message = "La cantidad debe ser mayor que cero")
         private Integer quantity;
-        private List<Integer> ingredientesIds;
+
+        private List<@Positive(message = "Los IDs de ingredientes deben ser positivos") Integer> ingredientesIds;
 
         public Integer getProductoId() {
             return productoId;
@@ -40,11 +59,11 @@ public class PedidoRequest implements Serializable {
         }
 
         public String getTamanoSeleccionado() {
-            return tamañoSeleccionado;
+            return tamanoSeleccionado;
         }
 
-        public void setTamañoSeleccionado(String tamañoSeleccionado) {
-            this.tamañoSeleccionado = tamañoSeleccionado;
+        public void setTamanoSeleccionado(String tamanoSeleccionado) {
+            this.tamanoSeleccionado = tamanoSeleccionado;
         }
 
         public Integer getQuantity() {

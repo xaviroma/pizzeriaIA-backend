@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import com.jm.model.Cliente;
 import com.jm.repository.ClienteRepository;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class PedidoController {
 
     @PostMapping
     public Integer crearPedido(
-            @RequestBody PedidoRequest request,
+            @Valid @RequestBody PedidoRequest request,
             Authentication authentication) {
 
         boolean esAdmin = authentication.getAuthorities().stream()
