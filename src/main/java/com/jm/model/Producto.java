@@ -28,6 +28,9 @@ public class Producto {
     
     private Integer orden;
 
+    @Column(nullable = false)
+    private boolean disponible = true;
+
     // Getters y setters
     public Integer getId() {
         return id;
@@ -100,4 +103,9 @@ public class Producto {
     public void setOrden(Integer orden) {
         this.orden = orden;
     }
+
+    public boolean isDisponible() { return disponible; }
+
+    public void setDisponible(boolean disponible) { this.disponible = disponible; }
+
 }

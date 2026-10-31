@@ -10,6 +10,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 @Service
 public class PedidoService {
 
@@ -51,6 +54,13 @@ public class PedidoService {
 
             Producto producto = productoRepository.findById(item.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            if (!producto.isDisponible()) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "El producto no está disponible: " + producto.getNombre()
+                );
+            }
 
             BigDecimal precio;
             String tamanoGuardar;

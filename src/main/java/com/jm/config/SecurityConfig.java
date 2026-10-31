@@ -12,6 +12,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 public class SecurityConfig {
@@ -35,6 +36,9 @@ public class SecurityConfig {
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
+
+                        // Permitir la gestión interna de errores de Spring
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 
                         // Peticiones CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
