@@ -6,6 +6,8 @@ import com.jm.repository.ClienteRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -33,15 +35,27 @@ public class ClienteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponse> obtenerClientePorId(
-            @PathVariable Integer id) {
+            @PathVariable Integer id,
+            Authentication authentication) {
 
         return clienteRepository.findById(id)
-                .map(cliente -> ResponseEntity.ok(convertirAResponse(cliente)))
+                .map(cliente -> {
+                    boolean esAdmin = authentication.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+                    if (!esAdmin && !cliente.getCorreo().equals(authentication.getName())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .<ClienteResponse>build();
+                    }
+
+                    return ResponseEntity.ok(convertirAResponse(cliente));
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ClienteResponse crearCliente(@RequestBody Cliente cliente) {
+        cliente.setRol("CLIENTE");
         if (cliente.getPassword() != null && !cliente.getPassword().isBlank()) {
             cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
         }
@@ -52,9 +66,19 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<ClienteResponse> actualizarCliente(
             @PathVariable Integer id,
-            @RequestBody Cliente detallesCliente) {
+            @RequestBody Cliente detallesCliente,
+            Authentication authentication) {
 
         return clienteRepository.findById(id).map(cliente -> {
+
+            boolean esAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!esAdmin && !cliente.getCorreo().equals(authentication.getName())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .<ClienteResponse>build();
+            }
+
             cliente.setNombre(detallesCliente.getNombre());
             cliente.setCorreo(detallesCliente.getCorreo());
             cliente.setTelefono(detallesCliente.getTelefono());
@@ -67,6 +91,7 @@ public class ClienteController {
 
             return ResponseEntity.ok(
                     convertirAResponse(clienteRepository.save(cliente)));
+
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

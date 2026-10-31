@@ -24,16 +24,21 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String correo) {
+    public String generateToken(String correo, String rol) {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
                 .subject(correo)
+                .claim("rol", rol)
                 .issuedAt(now)
                 .expiration(expirationDate)
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public String extractRol(String token) {
+        return extractAllClaims(token).get("rol", String.class);
     }
 
     public String extractCorreo(String token) {

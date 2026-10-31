@@ -33,13 +33,17 @@ public class AuthController {
                         request.getPassword(),
                         cliente.getPassword()))
                 .<ResponseEntity<?>>map(cliente -> {
-                    String token = jwtService.generateToken(cliente.getCorreo());
+                    String token = jwtService.generateToken(
+                            cliente.getCorreo(),
+                            cliente.getRol()
+                    );
 
                     return ResponseEntity.ok(new LoginResponse(
                             cliente.getId(),
                             cliente.getNombre(),
                             cliente.getCorreo(),
-                            token));
+                            token,
+                            cliente.getRol()));
                 })
                 .orElseGet(() -> ResponseEntity.status(401).build());
     }

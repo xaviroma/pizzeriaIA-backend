@@ -46,7 +46,26 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/webhook/stripe").permitAll()
 
-                        // Todo lo demás requiere JWT
+                        // Gestión de productos y categorías: ADMIN
+                        .requestMatchers("/productos/**", "/categorias/**")
+                        .hasRole("ADMIN")
+
+                        // Gestión general de clientes: ADMIN
+                        .requestMatchers(HttpMethod.GET, "/clientes")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/clientes/**")
+                        .hasRole("ADMIN")
+
+                        // Pedidos: ADMIN puede consultar todos
+                        .requestMatchers(HttpMethod.GET, "/pedidos")
+                        .hasRole("ADMIN")
+
+                        // Crear pedidos: CLIENTE o ADMIN
+                        .requestMatchers(HttpMethod.POST, "/pedidos")
+                        .hasAnyRole("CLIENTE", "ADMIN")
+
+                        // El resto requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

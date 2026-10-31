@@ -6,12 +6,14 @@ public class LoginResponse {
     private String nombre;
     private String correo;
     private String token;
+    private String rol;
 
-    public LoginResponse(Integer id, String nombre, String correo, String token) {
+    public LoginResponse(Integer id, String nombre, String correo, String token, String rol) {
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
         this.token = token;
+        this.rol = rol;
     }
 
     public Integer getId() {
@@ -28,5 +30,9 @@ public class LoginResponse {
 
     public String getToken() {
         return token;
+    }
+
+    public String getRol() {
+        return rol;
     }
 }
