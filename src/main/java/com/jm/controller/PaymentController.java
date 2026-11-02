@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import com.jm.service.PedidoService;
 
 @RestController
 @RequestMapping("/payments")
@@ -41,8 +42,34 @@ public class PaymentController {
                     "No tienes permiso para pagar este pedido"
             );
         }
+        if (!PedidoService.PENDIENTE.equals(pedido.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "El pedido no está pendiente de pago"
+            );
+        }
 
         Stripe.apiKey = stripeSecretKey;
+
+        if (pedido.getStripeSessionId() != null) {
+
+            Session sessionAnterior = Session.retrieve(pedido.getStripeSessionId());
+
+            if ("open".equals(sessionAnterior.getStatus())) {
+                return sessionAnterior.getUrl();
+            }
+
+            if ("complete".equals(sessionAnterior.getStatus())) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "El pedido ya tiene una sesión de pago completada"
+                );
+            }
+
+            // Si está caducada, permitimos crear una nueva.
+            pedido.setStripeSessionId(null);
+            pedido.setStripeSessionUrl(null);
+        }
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -77,6 +104,11 @@ public class PaymentController {
                 .build();
 
         Session session = Session.create(params);
+
+        pedido.setStripeSessionId(session.getId());
+        pedido.setStripeSessionUrl(session.getUrl());
+
+        pedidoRepository.save(pedido);
 
         return session.getUrl();
     }

@@ -27,6 +27,12 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     private List<PedidoProducto> productos;
 
+    @Column(name = "stripe_session_id")
+    private String stripeSessionId;
+
+    @Column(name = "stripe_session_url", length = 500)
+    private String stripeSessionUrl;
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -48,4 +54,20 @@ public class Pedido {
     public List<PedidoProducto> getProductos() { return productos; }
 
     public void setProductos(List<PedidoProducto> productos) { this.productos = productos; }
+
+    public String getStripeSessionId() {
+        return stripeSessionId;
+    }
+
+    public void setStripeSessionId(String stripeSessionId) {
+        this.stripeSessionId = stripeSessionId;
+    }
+
+    public String getStripeSessionUrl() {
+        return stripeSessionUrl;
+    }
+
+    public void setStripeSessionUrl(String stripeSessionUrl) {
+        this.stripeSessionUrl = stripeSessionUrl;
+    }
 }
