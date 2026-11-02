@@ -7,6 +7,9 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/payments")
@@ -27,10 +30,17 @@ public class PaymentController {
     }
 
     @PostMapping("/create-session")
-    public String createSession(@RequestParam Integer pedidoId) throws Exception {
+    public String createSession(@RequestParam Integer pedidoId, Authentication authentication) throws Exception {
 
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+
+        if (!pedido.getCliente().getCorreo().equals(authentication.getName())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permiso para pagar este pedido"
+            );
+        }
 
         Stripe.apiKey = stripeSecretKey;
 
