@@ -8,6 +8,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/webhook")
@@ -25,7 +26,7 @@ public class StripeWebhookController {
     }
 
     @PostMapping("/stripe")
-    public String handleStripeWebhook(
+    public ResponseEntity<String> handleStripeWebhook(
             @RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sigHeader
     ) {
@@ -36,7 +37,7 @@ public class StripeWebhookController {
             event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
         } catch (Exception e) {
             System.out.println("❌ Invalid signature");
-            return "Invalid signature";
+            return ResponseEntity.badRequest().body("Invalid signature");
         }
 
         System.out.println("📩 EVENTO: " + event.getType());
@@ -49,7 +50,7 @@ public class StripeWebhookController {
                  "payment_intent.payment_failed" -> handleCancel(event);
         }
 
-        return "OK";
+        return ResponseEntity.ok("OK");
     }
 
 
