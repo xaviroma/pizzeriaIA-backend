@@ -16,6 +16,11 @@ public class PaymentController {
     private final PedidoRepository pedidoRepository;
     @Value("${stripe.secret.key}")
     private String stripeSecretKey;
+    @Value("${app.frontend.success-url}")
+    private String successUrl;
+
+    @Value("${app.frontend.cancel-url}")
+    private String cancelUrl;
 
     public PaymentController(PedidoRepository pedidoRepository) {
         this.pedidoRepository = pedidoRepository;
@@ -33,8 +38,8 @@ public class PaymentController {
                 .setMode(SessionCreateParams.Mode.PAYMENT)
 
                 // 🌐 frontend
-                .setSuccessUrl("http://localhost:5173/success")
-                .setCancelUrl("http://localhost:5173/cancel")
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
 
                 // 🔥 CLAVE PARA WEBHOOK
                 .setClientReferenceId(pedidoId.toString())

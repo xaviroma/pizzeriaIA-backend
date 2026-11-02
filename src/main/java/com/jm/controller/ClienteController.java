@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
+import com.jm.dto.RegistroClienteRequest;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -54,13 +56,26 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ClienteResponse crearCliente(@RequestBody Cliente cliente) {
-        cliente.setRol("CLIENTE");
-        if (cliente.getPassword() != null && !cliente.getPassword().isBlank()) {
-            cliente.setPassword(passwordEncoder.encode(cliente.getPassword()));
+    public ResponseEntity<?> crearCliente(
+            @Valid @RequestBody RegistroClienteRequest request) {
+
+        if (clienteRepository.findByCorreo(request.getCorreo()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("El correo electrónico ya está registrado");
         }
 
-        return convertirAResponse(clienteRepository.save(cliente));
+        Cliente cliente = new Cliente();
+        cliente.setNombre(request.getNombre());
+        cliente.setCorreo(request.getCorreo());
+        cliente.setTelefono(request.getTelefono());
+        cliente.setDireccion(request.getDireccion());
+        cliente.setPassword(passwordEncoder.encode(request.getPassword()));
+        cliente.setRol("CLIENTE");
+
+        Cliente guardado = clienteRepository.save(cliente);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(convertirAResponse(guardado));
     }
 
     @PutMapping("/{id}")

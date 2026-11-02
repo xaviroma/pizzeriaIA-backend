@@ -140,15 +140,28 @@ public class PedidoService {
     public void actualizarEstado(Integer pedidoId, String estado) {
 
         Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Pedido no encontrado"));
 
-        // 🔒 evita sobrescribir si ya está en ese estado
-        if (pedido.getEstado() != null && pedido.getEstado().equals(estado)) {
+        String estadoActual = pedido.getEstado();
+
+        // Evitar actualizar al mismo estado
+        if (estadoActual.equals(estado)) {
             return;
         }
 
-        pedido.setEstado(estado);
+        // Validar estados permitidos
+        if (!PENDIENTE.equals(estadoActual)
+                || (!PAGADO.equals(estado) && !CANCELADO.equals(estado))) {
 
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Transición de estado no permitida: "
+                            + estadoActual + " -> " + estado
+            );
+        }
+
+        pedido.setEstado(estado);
         pedidoRepository.save(pedido);
     }
 }
